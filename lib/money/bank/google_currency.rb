@@ -5,8 +5,8 @@ class Money
   module Bank
     class GoogleCurrency < Money::Bank::VariableExchange
 
-      SERVICE_HOST = "www.google.com"
-      SERVICE_PATH = "/ig/calculator"
+      SERVICE_HOST = "rate-exchange.appspot.com"
+      SERVICE_PATH = "/currency"
 
       # @return [Hash] Stores the currently known rates.
       attr_reader :rates
@@ -83,11 +83,11 @@ class Money
         from, to = Currency.wrap(from), Currency.wrap(to)
 
         data = build_uri(from, to).read
-        data = fix_response_json_data(data)
+        data = ActiveSupport::JSON.decode(data) # fix_response_json_data(data)
 
-        error = data['error']
-        raise UnknownRate unless error == '' || error == '0'
-        decode_rate data['rhs']
+        error = data['err']
+        raise UnknownRate if error # unless error == '' || error == '0'
+        decode_rate data['rate']
       end
 
       ##
@@ -101,7 +101,7 @@ class Money
         uri = URI::HTTP.build(
           :host  => SERVICE_HOST,
           :path  => SERVICE_PATH,
-          :query => "hl=en&q=1#{from.iso_code}%3D%3F#{to.iso_code}"
+          :query => "hl=en&q=1&from=#{from.iso_code}&to=#{to.iso_code}"
         )
       end
 
@@ -142,7 +142,7 @@ class Money
       #
       # @return [Boolean]
       def complex_rate?(rhs)
-        rhs.match(/10x3csupx3e(-?\d+)x3c\/supx3e/)
+        rhs.to_s.match(/10x3csupx3e(-?\d+)x3c\/supx3e/)
       end
 
       ##
@@ -154,7 +154,7 @@ class Money
       # @return [BigDecimal]
       def decode_complex_rate(rhs)
         rate  = BigDecimal(rhs.match(/\d[\d\s]*\.?\d*/)[0])
-        power = rhs.match(/10x3csupx3e(-?\d+)x3c\/supx3e/)
+        power = rhs.to_s.match(/10x3csupx3e(-?\d+)x3c\/supx3e/)
 
         rate * 10**power[1].to_i
       end
@@ -167,7 +167,7 @@ class Money
       #
       # @return [BigDecimal]
       def decode_basic_rate(rhs)
-        BigDecimal(rhs.gsub(/[^\d\.]/, ''))
+        BigDecimal(rhs.to_s.gsub(/[^\d\.]/, ''))
       end
     end
   end

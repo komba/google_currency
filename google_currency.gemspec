@@ -1,8 +1,8 @@
 Gem::Specification.new do |s|
-  s.name        = "google_currency"
-  s.version     = "2.0.2"
+  s.name        = "komba_google_currency"
+  s.version     = "2.0.3"
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Shane Emmons"]
+  s.authors     = ["Shane Emmons", "Eugene Russkikh"]
   s.email       = ["semmons99@gmail.com"]
   s.homepage    = "http://rubymoney.github.com/google_currency"
   s.summary     = "Access the Google Currency exchange rate data."
